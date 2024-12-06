@@ -1,36 +1,19 @@
 name: publish
-
 on: [push]
-
 jobs:
-
-publish-sheets2projectionlab:
-
-runs-on: ubuntu-latest
-
-steps:
-
-- uses: actions/checkout@v2
-
-- name: Login to GitHub Container Registry
-
-uses: docker/login-action@v1
-
-with:
-
-registry: ghcr.io
-
-username: ${{ github.actor }}
-
-password: ${{ secrets.GITHUB_TOKEN }}
-
-- name: Build the sheets2projectionlab Docker image
-
-run: |
-
-       docker build . --tag ghcr.io/b-neufeld/sheets2projectionlab:latest
-
-       docker run ghcr.io/b-neufeld/sheets2projectionlab:latest
-
-       docker push ghcr.io/b-neufeld/sheets2projectionlab:latest
+  publish-sheets2projectionlab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the sheets2projectionlab Docker image
+        run: |
+          docker build . --tag ghcr.io/b-neufeld/sheets2projectionlab:latest
+          docker run ghcr.io/b-neufeld/sheets2projectionlab:latest
+          docker push ghcr.io/b-neufeld/sheets2projectionlab:latest
 
