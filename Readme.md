@@ -1,4 +1,4 @@
-# Work in Progress
+# ⚠ Work in Progress ⚠
 I am working on making a Docker container to sync a Google Sheet to ProjectionLab. 
 
 Stay tuned for updates! 
@@ -53,4 +53,21 @@ Copy the information returned to extract your account IDs.
 `=CONCATENATE("window.projectionlabPluginAPI.updateAccount('",C2,"', { balance: ",B2," }, { key: 'YOUR_PROJECTIONLAB_API_KEY' })")`
 
 ## Setting up the Docker Image 
-WIP
+⚠ Work in Progress ⚠
+Docker Compose Template:
+```yaml
+version: "3.8"
+services:
+  sheets2projectionlab:
+    container_name: sheets2projectionlab
+    image: ### TBD
+    environment:
+      - GOOGLE_JSON_KEY=/path/to/googlejsonkey.json
+      - PL_EMAIL=your_email@domain
+      - PL_PASSWORD=your_pl_password
+      - PL_URL=
+      - SHEETS_FILENAME=
+      - SHEETS_WORKSHEET=
+      - TIME_DELAY=10
+    restart: unless-stopped
+```
