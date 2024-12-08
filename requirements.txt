@@ -3,5 +3,5 @@ gspread
 google-api-python-client 
 oauth2client
 pandas
-selenium
+selenium==4.18.1
 #chromedriver-py

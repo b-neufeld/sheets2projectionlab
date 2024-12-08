@@ -11,7 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options #required to fix crashes?
 from selenium.webdriver.chrome.service import Service #also required
-from chromedriver_py import binary_path # this will get you the path variable https://pypi.org/project/chromedriver-py/
+#from chromedriver_py import binary_path # this will get you the path variable https://pypi.org/project/chromedriver-py/
 import time
 import os
 
@@ -71,18 +71,20 @@ chrome_options = Options()
 chrome_options.add_argument('--headless=new')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
-service = Service(executable_path=binary_path)
+chrome_options.add_argument('--disable-gpu')
+
+#service = Service(executable_path=binary_path)
 
 # Chromedriver is in this folder in my image, maybe need to specify it? 
 if debug: print("Starting Chrome...")
 # NOTE LATE ON DEC 7: IF I REMOVE THE OPTIONS, CHROME TRIES TO START...
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Chrome(options=chrome_options)
 
 # Navigate to ProjectionLab https://www.selenium.dev/documentation/webdriver/interactions/navigation/
-if debug: print("Navigating to ProjectionLab URL...")
+if debug: print("Navigating to ProjectionLab URL & waiting TIME_DELAY seconds...")
 driver.get(projectionlab_url)
 
-if debug: print("Sleeping "+time_delay+" seconds for page load...")
+#if debug: print("Sleeping "+time_delay+" seconds for page load...")
 time.sleep(time_delay) # Sleep for a bit 
 
 # Click Sign In With Email button based on XPATH
@@ -102,17 +104,17 @@ email_input.clear()  # Clear field
 email_input.send_keys(pl_pass)
 
 # Click Sign In Button
-if debug: print("Clicking Sign In button...")
+if debug: print("Clicking Sign In button & waiting TIME_DELAY seconds...")
 driver.find_element(By.XPATH,'//*[@id="auth-container"]/form/button').click()
 
-if debug: print("Sleeping "+time_delay+" seconds for page load...")
+#if debug: print("Sleeping "+time_delay+" seconds for page load...")
 time.sleep(time_delay) # Sleep for a bit 
 
 # Interate over update list
-if debug: print("Iterating over list to update PL accounts....")
+if debug: print("Iterating over list to update PL accounts then waiting TIME_DELAY seconds....")
 for command in update_list:
     # This should be a formatted ProjectionLab API account update
     driver.execute_script(command)
 
-if debug: print("Sleeping "+time_delay+" seconds then stopping...")
+#if debug: print("Sleeping "+time_delay+" seconds then stopping...")
 time.sleep(time_delay) # Sleep for a bit 
