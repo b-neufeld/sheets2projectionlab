@@ -11,7 +11,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options #required to fix crashes?
 from selenium.webdriver.chrome.service import Service #also required
-#from chromedriver_py import binary_path # this will get you the path variable https://pypi.org/project/chromedriver-py/
 import time
 import os
 
@@ -22,7 +21,8 @@ pl_pass = os.getenv("PL_PASSWORD")
 projectionlab_url = os.getenv("PL_URL")
 sheets_filename = os.getenv("SHEETS_FILENAME")
 sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
-time_delay = int(os.getenv("TIME_DELAY"))
+time_delay = os.getenv("TIME_DELAY")
+time_delay = int(time_delay)
 # TODO: Fix this "TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'"
 
 ####################################
@@ -55,9 +55,9 @@ update_list = sheet_instance.col_values(4)
 # trim the header row element
 update_list = update_list[1:]
 
-# For debugging
-#print(sheet_instance.cell(col=2,row=60))
-print("Example output for debugging: "+update_list[1])
+# For debugging: be cautious uncommenting this line for debugging as someone eventually using it may 
+# accidentally share their PL private keys in a screenshot or something. 
+# print("Example Google Sheets output for debugging: "+update_list[1])
 
 #########################################
 ### POPULATE PROJECTIONLAB W/ BROWSER ###
@@ -74,18 +74,15 @@ chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
 chrome_options.add_argument('--disable-gpu')
 
-#service = Service(executable_path=binary_path)
-
-# Chromedriver is in this folder in my image, maybe need to specify it? 
+# start Chrome
 if debug: print("Starting Chrome...")
-# NOTE LATE ON DEC 7: IF I REMOVE THE OPTIONS, CHROME TRIES TO START...
 driver = webdriver.Chrome(options=chrome_options)
 
-# Navigate to ProjectionLab https://www.selenium.dev/documentation/webdriver/interactions/navigation/
+# Navigate to ProjectionLab URL https://www.selenium.dev/documentation/webdriver/interactions/navigation/
 if debug: print("Navigating to ProjectionLab URL & waiting TIME_DELAY seconds...")
 driver.get(projectionlab_url)
 
-#if debug: print("Sleeping "+time_delay+" seconds for page load...")
+if debug: print("Sleeping "+str(time_delay)+" seconds for page load...")
 time.sleep(time_delay) # Sleep for a bit 
 
 # Click Sign In With Email button based on XPATH
@@ -108,7 +105,7 @@ email_input.send_keys(pl_pass)
 if debug: print("Clicking Sign In button & waiting TIME_DELAY seconds...")
 driver.find_element(By.XPATH,'//*[@id="auth-container"]/form/button').click()
 
-#if debug: print("Sleeping "+time_delay+" seconds for page load...")
+if debug: print("Sleeping "+str(time_delay)+" seconds for page load...")
 time.sleep(time_delay) # Sleep for a bit 
 
 # Interate over update list
@@ -117,5 +114,5 @@ for command in update_list:
     # This should be a formatted ProjectionLab API account update
     driver.execute_script(command)
 
-#if debug: print("Sleeping "+time_delay+" seconds then stopping...")
+if debug: print("Sleeping "+str(time_delay)+" seconds then stopping...")
 time.sleep(time_delay) # Sleep for a bit 

@@ -1,12 +1,8 @@
-#FROM selenium/standalone-chrome:latest
-#FROM selenium/standalone-firefox:4.27.0-20241204
-#FROM ubuntu:noble-20241118.1
 FROM python:3.11.4
-
 
 COPY . .
 
-# Another angle on Chrome & Chromedriver https://datawookie.dev/blog/2023/12/chrome-chromedriver-in-docker/
+# How I finally got Chrome & Chromedriver working https://datawookie.dev/blog/2023/12/chrome-chromedriver-in-docker/
 RUN apt-get update -qq -y && \
     apt-get install -y \
         libasound2 \
@@ -26,30 +22,15 @@ RUN apt-get update -qq -y && \
     mv chromedriver /usr/local/bin/  
 
 # USER root fixes a permissions error https://stackoverflow.com/a/37615312
+# TODO: Test if the root thing is actually required. Could possibly remove. 
 # How to run cron in Docker: https://lostindetails.com/articles/How-to-run-cron-inside-Docker
 USER root
 RUN apt-get -y --fix-broken install cron
 
-# ubuntu intall pip3
-# RUN apt update
-# RUN apt install python3-pip -y
-
+# TODO: Delete all these notes once cron stuff is working. Or save any useful links. 
+# Possibly useful resources for getting crontab working
 # https://betterstack.com/community/questions/how-to-run-cron-job-inside-docker-container/
-#COPY crontab /etc/cron.d/crontab
-#RUN touch /var/log/cron.log
-
-# Notes about how to do this differently 
-# 1. https://github.com/googlesamples/assistant-sdk-python/issues/236#issuecomment-383039470
-# 2. 
-RUN pip install --break-system-packages --upgrade -r requirements.txt
-
 # RUN crontab crontab 
-# I think root is required before the python3. 
-RUN echo "*/2 * * * * root python3 /sheets2projectionlab.py > /proc/1/fd/1 2>/proc/1/fd/2" >> /etc/crontab
-
-# start cron in foreground (don't fork)
-ENTRYPOINT [ "cron", "-f" ]
-
 #CMD ["crond", "-f"]
 # https://stackoverflow.com/a/73301815
 #CMD ["/usr/sbin/crond", "-n"]
@@ -57,5 +38,18 @@ ENTRYPOINT [ "cron", "-f" ]
 #CMD ["/sbin/cron","-f"]
 # TRY THIS https://betterstack.com/community/questions/how-to-run-cron-job-inside-docker-container/
 # CMD cron && tail -f /var/log/cron.log
+
+# Notes about how to do this differently 
+# 1. https://github.com/googlesamples/assistant-sdk-python/issues/236#issuecomment-383039470
+# 2. Virtual environment in docker container 
+RUN pip install --break-system-packages --upgrade -r requirements.txt
+
+# This is currently writing to /etc/crontab successfully but does not seem to be running. 
+# TODO: Change "every 2 minutes" (useful for debugging) to "every 1 hour" once working
+RUN echo "*/2 * * * * root python3 /sheets2projectionlab.py > /proc/1/fd/1 2>/proc/1/fd/2" >> /etc/crontab
+
+# start cron in foreground (don't fork)
+# TODO: Keep if I can get this working or remove if not. 
+ENTRYPOINT [ "cron", "-f" ]
 
 LABEL org.opencontainers.image.source="https://github.com/b-neufeld/sheets2projectionlab"
