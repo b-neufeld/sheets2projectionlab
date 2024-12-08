@@ -3,6 +3,14 @@ I am working on making a Docker container to sync a Google Sheet to ProjectionLa
 
 Stay tuned for updates! 
 
+## Disclaimer 
+I am not a professional programmer, I'm more of a cobbler-together-of-Stackoverflow answers. It is a near-certainty I will not have built this solution in the most efficient or sustainable way possible. I also have a day job and a toddler and don't have a lot of time to spend on this. However, I do like learning and hacking away on things, so any feedback is welcome. 
+
+### TODO:
+- Get cron job working 
+- Better documentation / screenshots 
+- Figure out versioning / releases
+
 # Overview 
 This Docker container contains a cron job that calls a Python script that runs on a daily schedule, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
 
