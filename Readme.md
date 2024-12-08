@@ -56,7 +56,6 @@ Copy the information returned to extract your account IDs.
 ⚠ Work in Progress ⚠ 
 Docker Compose Template:
 ```yaml
-version: "3.8"
 services:
   sheets2projectionlab:
     container_name: sheets2projectionlab
