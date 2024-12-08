@@ -1,1 +1,1 @@
-0 16 * * * python /sheets2projectionlab.py >> /logfile
+*/2 * * * * python3 /sheets2projectionlab.py >> /logfile.log 2>&1

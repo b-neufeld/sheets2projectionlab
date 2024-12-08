@@ -4,9 +4,9 @@ I am working on making a Docker container to sync a Google Sheet to ProjectionLa
 Stay tuned for updates! 
 
 # Overview 
-This Docker container contains a Python script that runs on a daily schedule, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
+This Docker container contains a cron job that calls a Python script that runs on a daily schedule, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
 
-It does this by authenticating with Google, grabbing values from your spreadsheet, spinning up an instance of Selenium web browser, logging into ProjectionLab with your credentials, and posting updated information to the Selenium browser console via the PL API. 
+It does this by authenticating with Google Drive, grabbing values from your Sheet, spinning up an instance of Selenium web browser, logging into ProjectionLab with your credentials, and posting updated information to the Selenium browser console via the ProjectionLab API. 
 
 # Limitations: 
 - Only tested on a self-hosted install with email/password login (not Google credentials)
@@ -25,7 +25,7 @@ It does this by authenticating with Google, grabbing values from your spreadshee
 1. Log into ProjectionLab
 2. User icon in top-right, Account Settings, Plugins
 3. Enable Plugins and copy your API Key. 
-4. Press F12 to open the developer console in your browser (while on the ProjectionLab page), and run the following script that gives you the `id` and name of your accounts: 
+4. Press F12 to open the developer console in your browser (while on the ProjectionLab page), and run the following script that gives you the `id` and name of your accounts ([script credit](https://github.com/georgeck/projectionlab-monarchmoney-import?tab=readme-ov-file#step-2-get-the-accountid-of-projectionlab-accounts-that-you-want-to-import)]): 
 
 ```javascript
 const exportData = await window.projectionlabPluginAPI.exportData({ key: 'YOUR_PL_API_KEY' });
@@ -53,21 +53,27 @@ Copy the information returned to extract your account IDs.
 `=CONCATENATE("window.projectionlabPluginAPI.updateAccount('",C2,"', { balance: ",B2," }, { key: 'YOUR_PROJECTIONLAB_API_KEY' })")`
 
 ## Setting up the Docker Image 
-⚠ Work in Progress ⚠
+⚠ Work in Progress ⚠ 
 Docker Compose Template:
 ```yaml
 version: "3.8"
 services:
   sheets2projectionlab:
     container_name: sheets2projectionlab
-    image: ### TBD
+    image: ghcr.io/b-neufeld/sheets2projectionlab:latest ## WIP, double check 
+    volumes:
+      - mnt/external/folder/with/google.json:keys/google.json
     environment:
-      - GOOGLE_JSON_KEY=/path/to/googlejsonkey.json
+      - GOOGLE_JSON_KEY_FILENAME=googlejsonkey.json
       - PL_EMAIL=your_email@domain
       - PL_PASSWORD=your_pl_password
-      - PL_URL=
-      - SHEETS_FILENAME=
-      - SHEETS_WORKSHEET=
+      - PL_URL=http://172.16.1.98:8099/register
+      - SHEETS_FILENAME=Financial Plan
+      - SHEETS_WORKSHEET=PLsync
       - TIME_DELAY=10
     restart: unless-stopped
 ```
+Notes:
+- The ProjectionLab URL must be the /register login page, as the Selenium script is looking for specific buttons to click to log in. 
+- `SHEETS_FILENAME` and `SHEETS_WORKSHEET` should be self-explanatory. Spaces are OK here, e.g. `SHEETS_FILENAME=Financial Plan`
+- `TIME_DELAY` is the number of seconds between opening the PL_URL and attempting to enter the username/password. 

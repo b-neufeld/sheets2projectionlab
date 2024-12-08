@@ -1,14 +1,4 @@
-# install packages with requirements.txt: https://docs.mage.ai/development/dependencies/requirements
-#!pip3 install gspread
-#!pip3 install --upgrade google-api-python-client oauth2client
-#!pip3 install pandas
-#!pip3 install selenium
-
 # BNeufeld 2024-12-06
-
-# TODO: these should be variables passed to the script via docker parameters
-# run on a schedule: https://github.com/nils-schroeder/dcp-boilerplate
-# Publish a docker image to Github container repo: https://dev.to/github/publishing-a-docker-image-to-githubs-container-repository-4n50
 
 #importing the required libraries
 import gspread
@@ -20,13 +10,13 @@ import time
 import os
 
 # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
-path_to_google_auth_json = os.getenv("GOOGLE_JSON_KEY")
+google_auth_json_filename = os.getenv("GOOGLE_JSON_KEY_FILENAME")
 pl_email = os.getenv("PL_EMAIL")
 pl_pass = os.getenv("PL_PASSWORD")
 projectionlab_url = os.getenv("PL_URL")
 sheets_filename = os.getenv("SHEETS_FILENAME")
 sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
-time_delay = os.getenv("TIME_DELAY")
+time_delay = int(os.getenv("TIME_DELAY"))
 
 ####################################
 ### GRAB DATA FROM GOOGLE SHEETS ###
@@ -37,7 +27,7 @@ time_delay = os.getenv("TIME_DELAY")
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
 # add credentials to the account
-creds = ServiceAccountCredentials.from_json_keyfile_name(path_to_google_auth_json, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name(os.path.join("/keys",google_auth_json_filename), scope)
 
 # authorize the clientsheet 
 client = gspread.authorize(creds)
@@ -57,7 +47,7 @@ update_list = update_list[1:]
 
 # For debugging
 #print(sheet_instance.cell(col=2,row=60))
-#print(update_list[1])
+print("Output for debugging: "+update_list[1])
 
 #########################################
 ### POPULATE PROJECTIONLAB W/ BROWSER ###
@@ -98,4 +88,4 @@ for command in update_list:
     # This should be a formatted ProjectionLab API account update
     driver.execute_script(command)
 
-time.sleep(5) # Sleep for a bit 
+time.sleep(time_delay) # Sleep for a bit 
