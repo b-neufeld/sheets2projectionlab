@@ -11,6 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options #required to fix crashes?
 from selenium.webdriver.chrome.service import Service #also required
+from chromedriver_py import binary_path # this will get you the path variable https://pypi.org/project/chromedriver-py/
 import time
 import os
 
@@ -70,11 +71,12 @@ chrome_options = Options()
 chrome_options.add_argument('--headless=new')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
-service = Service(executable_path='/usr/bin/chromedriver')
+service = Service(executable_path=binary_path)
 
 # Chromedriver is in this folder in my image, maybe need to specify it? 
 if debug: print("Starting Chrome...")
-driver = webdriver.Chrome(service=service,options=chrome_options)
+# NOTE LATE ON DEC 7: IF I REMOVE THE OPTIONS, CHROME TRIES TO START...
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # Navigate to ProjectionLab https://www.selenium.dev/documentation/webdriver/interactions/navigation/
 if debug: print("Navigating to ProjectionLab URL...")

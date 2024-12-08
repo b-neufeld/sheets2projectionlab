@@ -1,11 +1,18 @@
-FROM selenium/standalone-chrome:latest
+#FROM selenium/standalone-chrome:latest
+#FROM selenium/standalone-firefox:4.27.0-20241204
+FROM ubuntu:noble-20241118.1
 
 COPY . .
 
 # USER root fixes a permissions error https://stackoverflow.com/a/37615312
 # How to run cron in Docker: https://lostindetails.com/articles/How-to-run-cron-inside-Docker
 USER root
-RUN sudo apt-get update && apt-get -y --fix-broken install cron
+# should not need to (re)install crontab on ubuntu
+RUN apt-get update && apt-get -y --fix-broken install cron
+
+# ubuntu intall pip3
+# RUN apt update
+RUN apt install python3-pip -y
 
 # https://betterstack.com/community/questions/how-to-run-cron-job-inside-docker-container/
 #COPY crontab /etc/cron.d/crontab
@@ -14,7 +21,7 @@ RUN sudo apt-get update && apt-get -y --fix-broken install cron
 # Notes about how to do this differently 
 # 1. https://github.com/googlesamples/assistant-sdk-python/issues/236#issuecomment-383039470
 # 2. 
-RUN sudo pip install --break-system-packages --upgrade -r requirements.txt
+RUN pip3 install --break-system-packages --upgrade -r requirements.txt
 
 # RUN crontab crontab 
 # I think root is required before the python3. 

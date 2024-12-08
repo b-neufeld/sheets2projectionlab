@@ -4,3 +4,4 @@ google-api-python-client
 oauth2client
 pandas
 selenium
+#chromedriver-py
