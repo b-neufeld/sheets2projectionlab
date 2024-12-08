@@ -7,21 +7,23 @@ Stay tuned for updates!
 I am not a professional programmer, I'm more of a cobbler-together-of-Stackoverflow answers. It is a near-certainty I will not have built this solution in the most efficient or sustainable way possible. I also have a day job and a toddler and don't have a lot of time to spend on this. However, I do like learning and hacking away on things, so any feedback is welcome. 
 
 ### TODO:
-- Get cron job working 
+- Get cron job working [DONE?!]
 - Better documentation / screenshots 
-- Figure out versioning / releases
+- Figure out versioning / releases [WIP]
 
 # Overview 
-This Docker container contains a cron job that calls a Python script that runs on a daily schedule, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
+This Docker container contains a cron job that calls a Python script that runs evert five minutes*, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
 
 It does this by authenticating with Google Drive, grabbing values from your Sheet, spinning up an instance of Selenium web browser, logging into ProjectionLab with your credentials, and posting updated information to the Selenium browser console via the ProjectionLab API. 
 
+*Five minutes is somewhat arbitrary but allows for some easy visibility of if the container is working or not (e.g. you don't have to wait 24 hours to see a value update).
+
 # Limitations: 
-- Only tested on a self-hosted install with email/password login (not Google credentials)
+- Only tested on a self-hosted ProjectionLab install with email/password login (not Google credentials)
 - Not sure how to handle Google authentication 
 
 # Instructions
-## Set up Service User on Google Account
+## Set up Service User on Google Account (one-time)
 1. Log into [Google Cloud Console](https://console.cloud.google.com/apis/dashboard) with your Google account
 2. Create a new Project, you can call it "Expose Sheets to ProjectionLab"
 3. Navigate to Enable APIs and Services 
@@ -29,7 +31,7 @@ It does this by authenticating with Google Drive, grabbing values from your Shee
 5. Create a new set of credentials with Owner permissions (can call it something like yourname+sheets2projectionlab). Make a note of the full email account associated with it. 
 6. Navigate to the Keys tab, Create a new set of Keys, and download as JSON. Keep these credentials secure as they can access your account! 
 
-## Grab Account ID's from ProjectionLab
+## Grab Account ID's from ProjectionLab (one-time, or whenever new account(s) are added)
 1. Log into ProjectionLab
 2. User icon in top-right, Account Settings, Plugins
 3. Enable Plugins and copy your API Key. 
@@ -69,7 +71,11 @@ services:
     container_name: sheets2projectionlab
     image: ghcr.io/b-neufeld/sheets2projectionlab:latest ## WIP, double check 
     volumes:
-      - mnt/external/folder/with/google.json:keys/google.json
+      # Map the folder where 
+      # If running on windows this could look like 
+      # - C:\Users\Brahm\Desktop\sheets2projectionlab\private:/keys
+      # Linux example:
+      - /mnt/external/folder/with/authfile:/keys
     environment:
       - GOOGLE_JSON_KEY_FILENAME=googlejsonkey.json
       - PL_EMAIL=your_email@domain
@@ -84,3 +90,4 @@ Notes:
 - The ProjectionLab URL must be the /register login page, as the Selenium script is looking for specific buttons to click to log in. 
 - `SHEETS_FILENAME` and `SHEETS_WORKSHEET` should be self-explanatory. Spaces are OK here, e.g. `SHEETS_FILENAME=Financial Plan`
 - `TIME_DELAY` is the number of seconds between opening the PL_URL and attempting to enter the username/password. 
+- If you use Docker Run instead of Docker Compose, see https://www.decomposerize.com/ or a similar site.
