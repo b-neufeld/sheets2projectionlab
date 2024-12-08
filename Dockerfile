@@ -50,6 +50,11 @@ RUN echo "*/2 * * * * root python3 /sheets2projectionlab.py > /proc/1/fd/1 2>/pr
 
 # start cron in foreground (don't fork)
 # TODO: Keep if I can get this working or remove if not. 
-ENTRYPOINT [ "cron", "-f" ]
+# ENTRYPOINT [ "cron", "-f" ] ## This was not working but the closest I've had
+# FRom here: https://stackoverflow.com/a/61631500
+RUN chmod 0644 /etc/crontab
+RUN /usr/bin/crontab /etc/crontab
+CMD ["cron", "-f"]
+
 
 LABEL org.opencontainers.image.source="https://github.com/b-neufeld/sheets2projectionlab"

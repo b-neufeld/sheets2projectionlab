@@ -24,6 +24,7 @@ sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
 time_delay = os.getenv("TIME_DELAY")
 time_delay = int(time_delay)
 # TODO: Fix this "TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'"
+# Remove this comment after a successful build & test. 
 
 ####################################
 ### GRAB DATA FROM GOOGLE SHEETS ###
@@ -90,16 +91,25 @@ if debug: print("Clicking Sign In...")
 driver.find_element(By.XPATH,'//*[@id="auth-container"]/button[2]').click()
 #An alternative might be find element, but kludgier: driver.find_element(By.CLASS_NAME,'d-flex.align-center.ml-n2').click()
 
+if debug: print("Sleeping 1 sec between fields...")
+time.sleep(1) # Sleep for a bit 
+
 # Enter email address
 if debug: print("Entering email & password...")
 email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
 email_input.clear()  # Clear field
 email_input.send_keys(pl_email)
 
+if debug: print("Sleeping 1 sec betweenemail & password...")
+time.sleep(1) # Sleep for a bit 
+
 # Enter password
 email_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
 email_input.clear()  # Clear field
 email_input.send_keys(pl_pass)
+
+if debug: print("Sleeping 1 sec between password & sign-in...")
+time.sleep(1) # Sleep for a bit 
 
 # Click Sign In Button
 if debug: print("Clicking Sign In button & waiting TIME_DELAY seconds...")
