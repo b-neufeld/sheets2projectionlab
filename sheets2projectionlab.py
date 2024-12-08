@@ -10,19 +10,18 @@ from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options #required to fix crashes?
-from selenium.webdriver.chrome.service import Service #also required
 import time
 import os
 
 # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
-google_auth_json_filename = os.getenv("GOOGLE_JSON_KEY_FILENAME")
-pl_email = os.getenv("PL_EMAIL")
-pl_pass = os.getenv("PL_PASSWORD")
-projectionlab_url = os.getenv("PL_URL")
-sheets_filename = os.getenv("SHEETS_FILENAME")
-sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
-time_delay = os.getenv("TIME_DELAY")
-time_delay = int(time_delay)
+google_auth_json_filename = str(os.getenv("GOOGLE_JSON_KEY_FILENAME"))
+pl_email = str(os.getenv("PL_EMAIL"))
+pl_pass = str(os.getenv("PL_PASSWORD"))
+projectionlab_url = str(os.getenv("PL_URL"))
+sheets_filename = str(os.getenv("SHEETS_FILENAME"))
+sheets_worksheet = str(os.getenv("SHEETS_WORKSHEET"))
+DEFAULT_TIME_DELAY = 10
+time_delay = int(os.getenv("TIME_DELAY",DEFAULT_TIME_DELAY)) # https://stackoverflow.com/a/61697579
 # TODO: Fix this "TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'"
 # Remove this comment after a successful build & test. 
 
@@ -100,7 +99,7 @@ email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
 email_input.clear()  # Clear field
 email_input.send_keys(pl_email)
 
-if debug: print("Sleeping 1 sec betweenemail & password...")
+if debug: print("Sleeping 1 sec between email & password...")
 time.sleep(1) # Sleep for a bit 
 
 # Enter password
@@ -112,7 +111,7 @@ if debug: print("Sleeping 1 sec between password & sign-in...")
 time.sleep(1) # Sleep for a bit 
 
 # Click Sign In Button
-if debug: print("Clicking Sign In button & waiting TIME_DELAY seconds...")
+if debug: print("Clicking Sign In button...")
 driver.find_element(By.XPATH,'//*[@id="auth-container"]/form/button').click()
 
 if debug: print("Sleeping "+str(time_delay)+" seconds for page load...")
