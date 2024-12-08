@@ -23,6 +23,7 @@ projectionlab_url = os.getenv("PL_URL")
 sheets_filename = os.getenv("SHEETS_FILENAME")
 sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
 time_delay = int(os.getenv("TIME_DELAY"))
+# TODO: Fix this "TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'"
 
 ####################################
 ### GRAB DATA FROM GOOGLE SHEETS ###
