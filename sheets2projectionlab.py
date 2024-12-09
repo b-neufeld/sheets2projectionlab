@@ -37,7 +37,7 @@ scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/aut
 keyfile_path = os.path.join("/keys",google_auth_json_filename)
 try:
     # Attempt to open the file
-    with open('keyfile_path', 'r') as file:
+    with open(keyfile_path, 'r') as file:
         print("The key file exists, continuing...")
 except FileNotFoundError:
     print("The expected key file JSON was not found, exiting...")
