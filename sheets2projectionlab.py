@@ -145,7 +145,6 @@ def main():
             logging.debug(f"Executing command: {redacted_command}")
             driver.execute_script(command)
             logging.info("Successfully executed command.")
-            time.sleep(time_delay)
         
         logging.info("All updates completed successfully.")
 
