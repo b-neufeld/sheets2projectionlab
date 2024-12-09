@@ -10,6 +10,11 @@ env:
 jobs:
   publish-sheets2projectionlab:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
       - uses: actions/checkout@v2
       - name: Login to GitHub Container Registry
