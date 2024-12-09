@@ -16,9 +16,9 @@ jobs:
       # Checkout the repository
       - uses: actions/checkout@v2
 
-      # Login to GitHub Container Registry
+      # Login to GitHub Container Registry (updated to v2)
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -30,13 +30,14 @@ jobs:
         run: |
           echo "IS_PRERELEASE=${{ github.event.release.prerelease }}" >> $GITHUB_ENV
 
-      # Extract metadata for Docker
+      # Extract metadata (tags, labels) for Docker
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=semver,pattern=v{{version}}
             type=semver,pattern={{version}}
 
       # Build and push Docker image without the latest tag
@@ -48,6 +49,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Pull the image again so it's available locally
+      - name: Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}
 
       # Conditionally add the 'latest' tag for non-pre-releases
       - name: Add 'latest' tag if not a pre-release
