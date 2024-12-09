@@ -2,7 +2,7 @@
 # Overview 
 This Docker container contains a cron job that calls a Python script that runs evert five minutes*, grabbing a bunch of data from a Google Sheet that you own, and dumping it into ProjectionLab. 
 
-*Five minutes is somewhat arbitrary but allows for some easy visibility of if the container is working or not (e.g. you don't have to wait 24 hours to see a value update).
+*Five minutes is high-frequency for planning software with daily balance logs and yearly simulation horizons, but why not? I picked this frequency because it visibly demonstrates the script is working - no need to wait 24 hours to see. 
 
 The script authenticates with Google Drive, grabs values from your Sheet, spins up an instance of Selenium web browser, mimics the clicks to log into ProjectionLab with your credentials, and posts updated balances to the Selenium browser console via the ProjectionLab API. 
 
@@ -51,11 +51,15 @@ Copy the information returned to extract your account IDs.
 3. Create the following four columns:
 
 - A: Account Name (friendly name, just for your reference, helps if this matches PL account name)
-- B: Current Amount (doing whatever spreadsheet magic required to get numeric dollar values in this column)
+- B: Balance (doing whatever spreadsheet magic required to dollars in this column from elsewhere on your sheet)
 - C: ProjectionLab Account ID
 - D: The formula (below) which creates a javascript projectionlab API update command for each account. These will be read by the script and pushed to a browser console to update account balances based on your Google Sheet. 
 
 `=CONCATENATE("window.projectionlabPluginAPI.updateAccount('",C2,"', { balance: ",B2," }, { key: 'YOUR_PROJECTIONLAB_API_KEY' })")`
+
+Screenshot of example Google Sheet (with random balances and blanked-out ProjectionLab API key):
+![image](https://github.com/user-attachments/assets/92e0259d-2b18-4504-91f9-f97da66d83a2)
+
 
 ## Setting up the Docker Image 
 Docker Compose Template:
@@ -86,3 +90,8 @@ Notes:
 - `SHEETS_FILENAME` and `SHEETS_WORKSHEET` should be self-explanatory. Spaces are OK here, e.g. `SHEETS_FILENAME=Financial Plan`
 - `TIME_DELAY` is the number of seconds between opening the PL_URL and attempting to enter the username/password. This should not be too small (10 seconds is default) or the script will try and log in or publish values before the content renders in the browser.
 - If you use Docker Run instead of Docker Compose, see https://www.decomposerize.com/ or a similar site.
+
+## How do I know it's working? 
+Every 5 minutes, the log output of the container will show the steps the script has taken:
+![image](https://github.com/user-attachments/assets/2fac639f-e465-41b3-bc32-028f300a4d47)
+I've observed the script fail somewhat randomly and I believe this has to do with spinning up a Selenium browser and for some reason, it is slow to load my self-hosted ProjectionLab instance, and the script times out.  
