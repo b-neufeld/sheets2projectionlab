@@ -1,137 +1,157 @@
-# BNeufeld 2024-12-06
+# BNeufeld
 
-# Extra console output for debugging
-debug=True
-
-#importing the required libraries
+#importing required libraries
+import logging
+import os
+import time
 import gspread
-import pandas as pd
+import re
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options #required to fix crashes?
-import time
-import os
+from selenium.webdriver.chrome.options import Options
 
-# Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
-# Type casting of all env vars seems to be required to prevent an error on the cron job.
-# Actually I could probably remove them as it was due to a cron/docker issue. 
-google_auth_json_filename = str(os.getenv("GOOGLE_JSON_KEY_FILENAME"))
-pl_email = str(os.getenv("PL_EMAIL"))
-pl_pass = str(os.getenv("PL_PASSWORD"))
-projectionlab_url = str(os.getenv("PL_URL"))
-sheets_filename = str(os.getenv("SHEETS_FILENAME"))
-sheets_worksheet = str(os.getenv("SHEETS_WORKSHEET"))
-DEFAULT_TIME_DELAY = 10
-time_delay = int(os.getenv("TIME_DELAY",DEFAULT_TIME_DELAY)) # https://stackoverflow.com/a/61697579
+def get_env_variable(var_name, default=None):
+    # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
+    value = os.getenv(var_name, default)
+    if not value:
+        logging.error(f"Environment variable {var_name} is missing or invalid.")
+        exit()
+    return value
 
-####################################
-### GRAB DATA FROM GOOGLE SHEETS ###
-#################################### 
+def validate_update_commands(commands):
+    # Validate data pulled from Google Sheets
+    for command in commands:
+        if not command.startswith("window.projectionlabPluginAPI.updateAccount"):
+            logging.warning(f"Invalid command detected: {command}")
+            commands.remove(command)
+    return commands
 
-#Good chunk of this is borrwed from https://www.analyticsvidhya.com/blog/2020/07/read-and-update-google-spreadsheets-with-python/
-# define the scope
-scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+def redact_api_key(command):
+    # Use a regular expression to find and replace the `key` field (remove sensitive information from logging)
+    redacted_command = re.sub(r"(key: ')([^']+)(')", r"\1***REDACTED***\3", command)
+    return redacted_command
 
-# Check that key file exists and if not, exit the script. 
-keyfile_path = os.path.join("/keys",google_auth_json_filename)
-try:
-    # Attempt to open the file
-    with open(keyfile_path, 'r') as file:
-        print("The key file exists, continuing...")
-except FileNotFoundError:
-    print("The expected key file JSON was not found, exiting...")
-    exit()
+def main(): 
+    # Set up logging configuration
+    logging.basicConfig(
+        level=logging.DEBUG,  # Set level to DEBUG for verbose output
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
 
-# add credentials to the account
-creds = ServiceAccountCredentials.from_json_keyfile_name(keyfile_path, scope)
+    google_auth_json_filename = get_env_variable("GOOGLE_JSON_KEY_FILENAME")
+    pl_email = get_env_variable("PL_EMAIL")
+    pl_pass = get_env_variable("PL_PASSWORD")
+    projectionlab_url = get_env_variable("PL_URL")
+    sheets_filename = get_env_variable("SHEETS_FILENAME")
+    sheets_worksheet = get_env_variable("SHEETS_WORKSHEET")
+    time_delay = int(get_env_variable("TIME_DELAY",10))
 
-# authorize the clientsheet 
-if debug: print("Authorizing Google creds...")
-client = gspread.authorize(creds)
+    ####################################
+    ### GRAB DATA FROM GOOGLE SHEETS ###
+    #################################### 
 
-# get the instance of the Spreadsheet
-if debug: print("Opening spreadsheet...")
-sheet = client.open(sheets_filename)
+    logging.info("Starting data retrieval from Google Sheets.")
 
-# Specify the name of the sheet with financial numbers 
-sheet_instance = sheet.worksheet(sheets_worksheet)
+    #Good chunk of this is borrwed from https://www.analyticsvidhya.com/blog/2020/07/read-and-update-google-spreadsheets-with-python/
+    # define the scope
+    scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
-# List of accounts and balances to update
-# Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
-# Assumes Column 4 and that people are matching my template. 
-if debug: print("Grabbing PL values from Google Sheet...")
-update_list = sheet_instance.col_values(4)
-# trim the header row element
-update_list = update_list[1:]
+    # Check that key file exists and if not, exit the script. 
+    keyfile_path = os.path.join("/keys", google_auth_json_filename)
+    try:
+        with open(keyfile_path, 'r') as file:
+            logging.info("Google key file exists. Proceeding...")
+    except FileNotFoundError:
+        logging.error("The expected key file JSON was not found. Exiting...")
+        exit()
 
-# For debugging: be cautious uncommenting this line for debugging as someone eventually using it may 
-# accidentally share their PL private keys in a screenshot or something. 
-# print("Example Google Sheets output for debugging: "+update_list[1])
+    # add credentials to the account
+    creds = ServiceAccountCredentials.from_json_keyfile_name(keyfile_path, scope)
 
-#########################################
-### POPULATE PROJECTIONLAB W/ BROWSER ###
-#########################################
+    # authorize the clientsheet 
+    logging.debug("Authorizing Google credentials...")
+    client = gspread.authorize(creds)
 
-# Here is a good reference on how Monarch Money updates PL. https://github.com/georgeck/projectionlab-monarchmoney-import
-# Here is a site about using Selenium to open a browser and log in: https://medium.com/@kikigulab/how-to-automate-opening-and-login-to-websites-with-python-6aeaf1f6ae98
+    # get the instance of the Spreadsheet
+    logging.debug("Opening Google Sheets spreadsheet...")
+    sheet = client.open(sheets_filename)
 
-# create selenium browser. Options hopefully fix a crashing issue (https://stackoverflow.com/a/53073789)
-if debug: print("Setting Chrome/Selenium options...")
-chrome_options = Options()
-chrome_options.add_argument('--headless=new')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
-chrome_options.add_argument('--disable-gpu')
+    logging.debug("Accessing specified worksheet...")
+    sheet_instance = sheet.worksheet(sheets_worksheet)
 
-# start Chrome
-if debug: print("Starting Chrome...")
-driver = webdriver.Chrome(options=chrome_options)
+    # List of accounts and balances to update
+    # Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
+    # Assumes Column 4 and that people are matching my template. 
+    logging.debug("Fetching update list from Google Sheets...")
+    update_list = sheet_instance.col_values(4)
+    update_list = validate_update_commands(update_list[1:])  # Trim the header row and validate
+    logging.info(f"Retrieved {len(update_list)} entries from the update list.")
 
-# Navigate to ProjectionLab URL https://www.selenium.dev/documentation/webdriver/interactions/navigation/
-if debug: print("Navigating to ProjectionLab URL & waiting TIME_DELAY seconds...")
-driver.get(projectionlab_url)
+    # For debugging: be cautious uncommenting this line for debugging as someone eventually using it may 
+    # accidentally share their PL private keys in a screenshot or something. 
+    # print("Example Google Sheets output for debugging: "+update_list[1])
 
-if debug: print("Sleeping "+str(time_delay)+" seconds for page load...")
-time.sleep(time_delay) # Sleep for a bit 
+    #########################################
+    ### POPULATE PROJECTIONLAB W/ BROWSER ###
+    #########################################
 
-# Click Sign In With Email button based on XPATH
-if debug: print("Clicking Sign In...")
-driver.find_element(By.XPATH,'//*[@id="auth-container"]/button[2]').click()
-#An alternative might be find element, but kludgier: driver.find_element(By.CLASS_NAME,'d-flex.align-center.ml-n2').click()
+    # Here is a good reference on how Monarch Money updates PL. https://github.com/georgeck/projectionlab-monarchmoney-import
+    # Here is a site about using Selenium to open a browser and log in: https://medium.com/@kikigulab/how-to-automate-opening-and-login-to-websites-with-python-6aeaf1f6ae98
 
-if debug: print("Sleeping 1 sec between fields...")
-time.sleep(1) # Sleep for a bit 
+    # create selenium browser. Options hopefully fix a crashing issue (https://stackoverflow.com/a/53073789)
+    logging.info("Initializing Selenium WebDriver...")
+    chrome_options = Options()
+    chrome_options.add_argument('--headless=new')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
 
-# Enter email address
-if debug: print("Entering email & password...")
-email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
-email_input.clear()  # Clear field
-email_input.send_keys(pl_email)
+    try:
+        logging.debug("Starting Chrome WebDriver...")
+        driver = webdriver.Chrome(options=chrome_options)
 
-if debug: print("Sleeping 1 sec between email & password...")
-time.sleep(1) # Sleep for a bit 
+        logging.debug(f"Navigating to ProjectionLab URL: {projectionlab_url}")
+        driver.get(projectionlab_url)
 
-# Enter password
-email_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
-email_input.clear()  # Clear field
-email_input.send_keys(pl_pass)
+        logging.info(f"Waiting {time_delay} seconds for the page to load.")
+        time.sleep(time_delay)
 
-if debug: print("Sleeping 1 sec between password & sign-in...")
-time.sleep(1) # Sleep for a bit 
+        logging.debug("Clicking Sign In with Email button...")
+        driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]').click()
+        time.sleep(1)
 
-# Click Sign In Button
-if debug: print("Clicking Sign In button...")
-driver.find_element(By.XPATH,'//*[@id="auth-container"]/form/button').click()
+        logging.debug("Entering email address...")
+        email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
+        email_input.clear()
+        email_input.send_keys(pl_email)
+        time.sleep(1)
 
-if debug: print("Sleeping "+str(time_delay)+" seconds for page load...")
-time.sleep(time_delay) # Sleep for a bit 
+        logging.debug("Entering password...")
+        password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
+        password_input.clear()
+        password_input.send_keys(pl_pass)
+        time.sleep(1)
 
-# Interate over update list
-if debug: print("Iterating over list to update PL accounts then waiting TIME_DELAY seconds....")
-for command in update_list:
-    # This should be a formatted ProjectionLab API account update
-    driver.execute_script(command)
+        logging.debug("Clicking Sign In button...")
+        driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button').click()
+        logging.info(f"Waiting {time_delay} seconds for login to complete.")
+        time.sleep(time_delay)
 
-if debug: print("Sleeping "+str(time_delay)+" seconds then stopping...")
-time.sleep(time_delay) # Sleep for a bit 
+        logging.info("Updating accounts in ProjectionLab...")
+        for command in update_list:
+            redacted_command = redact_api_key(command) # hide private info from logging
+            logging.debug(f"Executing command: {redacted_command}")
+            driver.execute_script(command)
+            logging.info("Successfully executed command.")
+            time.sleep(time_delay)
+        
+        logging.info("All updates completed successfully.")
+
+    finally:
+        logging.info("Closing WebDriver.")
+        driver.quit()
+
+if __name__ == "__main__":
+    main()
