@@ -144,7 +144,9 @@ def main():
             redacted_command = redact_api_key(command) # hide private info from logging
             logging.debug(f"Executing command: {redacted_command}")
             driver.execute_script(command)
-            logging.info("Successfully executed command.")
+            logging.info("Successfully executed command. Sleeping 1 sec")
+            time.sleep(1)
+
         
         logging.info("All updates completed successfully.")
 
