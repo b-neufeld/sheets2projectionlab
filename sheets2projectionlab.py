@@ -18,14 +18,20 @@ logging.basicConfig(
 )
 
 # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
-google_auth_json_filename = os.getenv("GOOGLE_JSON_KEY_FILENAME")
-pl_email = os.getenv("PL_EMAIL")
-pl_pass = os.getenv("PL_PASSWORD")
-projectionlab_url = os.getenv("PL_URL")
-sheets_filename = os.getenv("SHEETS_FILENAME")
-sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
-DEFAULT_TIME_DELAY = 10
-time_delay = int(os.getenv("TIME_DELAY",DEFAULT_TIME_DELAY)) # https://stackoverflow.com/a/61697579
+def get_env_variable(var_name, default=None):
+    value = os.getenv(var_name, default)
+    if not value:
+        logging.error(f"Environment variable {var_name} is missing or invalid.")
+        exit()
+    return value
+
+google_auth_json_filename = get_env_variable("GOOGLE_JSON_KEY_FILENAME")
+pl_email = get_env_variable("PL_EMAIL")
+pl_pass = get_env_variable("PL_PASSWORD")
+projectionlab_url = get_env_variable("PL_URL")
+sheets_filename = get_env_variable("SHEETS_FILENAME")
+sheets_worksheet = get_env_variable("SHEETS_WORKSHEET")
+time_delay = int(get_env_variable("SHEETS_WORKSHEET",10))
 
 ####################################
 ### GRAB DATA FROM GOOGLE SHEETS ###
