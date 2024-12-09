@@ -24,9 +24,10 @@ I am not a professional programmer. I'm a cobbler-together-of-Stackoverflow answ
 
 ## Grab Account ID's from ProjectionLab (one-time, or whenever new account(s) are added)
 1. Log into ProjectionLab.
-2. User icon in top-right, Account Settings, Plugins.
-3. Enable Plugins and copy your API Key. 
-4. Press F12 to open the developer console in your browser (while on the ProjectionLab page), and run the following script that gives you the `id` and name of your accounts ([script credit](https://github.com/georgeck/projectionlab-monarchmoney-import?tab=readme-ov-file#step-2-get-the-accountid-of-projectionlab-accounts-that-you-want-to-import)]): 
+2. User icon in top-right, Account Settings, Export Data (just in case!!)
+3. User icon in top-right, Account Settings, Plugins.
+4. Enable Plugins and copy your API Key. 
+5. Press F12 to open the developer console in your browser (while on the ProjectionLab page), and run the following script that gives you the `id` and name of your accounts ([script credit](https://github.com/georgeck/projectionlab-monarchmoney-import?tab=readme-ov-file#step-2-get-the-accountid-of-projectionlab-accounts-that-you-want-to-import)]): 
 
 ```javascript
 const exportData = await window.projectionlabPluginAPI.exportData({ key: 'YOUR_PL_API_KEY' });
