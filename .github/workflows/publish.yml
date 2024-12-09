@@ -27,7 +27,8 @@ jobs:
       # Determine if the release is a pre-release
       - name: Check if pre-release
         id: prerelease
-        run: echo "IS_PRERELEASE=${{ github.event.release.prerelease }}" >> $GITHUB_ENV
+        run: |
+          echo "IS_PRERELEASE=${{ github.event.release.prerelease }}" >> $GITHUB_ENV
 
       # Extract metadata for Docker
       - name: Extract metadata (tags, labels) for Docker
@@ -37,9 +38,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{version}}
-            ${{ 'latest' if env.IS_PRERELEASE != 'true' else '' }}
 
-      # Build and push Docker image
+      # Build and push Docker image without the latest tag
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v4
@@ -48,3 +48,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # Conditionally add the 'latest' tag for non-pre-releases
+      - name: Add 'latest' tag if not a pre-release
+        if: env.IS_PRERELEASE != 'true'
+        run: |
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
