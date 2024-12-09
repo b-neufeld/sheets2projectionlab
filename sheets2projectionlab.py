@@ -46,7 +46,7 @@ def main():
     projectionlab_url = get_env_variable("PL_URL")
     sheets_filename = get_env_variable("SHEETS_FILENAME")
     sheets_worksheet = get_env_variable("SHEETS_WORKSHEET")
-    time_delay = int(get_env_variable("SHEETS_WORKSHEET",10))
+    time_delay = int(get_env_variable("TIME_DELAY",10))
 
     ####################################
     ### GRAB DATA FROM GOOGLE SHEETS ###
