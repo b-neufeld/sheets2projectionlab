@@ -1,6 +1,5 @@
-# Pretty much straight from here: https://docs.github.com/en/actions/use-cases-and-examples/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
 name: publish
-# Only trigger Docker image build when new release is published. 
+# Only trigger Docker image build when a new release is published.
 on:
   release:
     types: [published]
@@ -8,7 +7,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 jobs:
-  publish-sheets2projectionlab:
+  publish-docker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,36 +15,42 @@ jobs:
       attestations: write
       id-token: write
     steps:
+      # Checkout the repository
       - uses: actions/checkout@v2
+      
+      # Login to GitHub Container Registry
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Extract metadata (tags, labels) for Docker
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v4
         with:
-            images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            latest
+      
+      # Build and push Docker image
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      
+      # Generate artifact attestation
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-# Originally I had this but it didn't work - I think the run statement was not required. 
-#      - name: Build the sheets2projectionlab Docker image
-#        run: |
-#          docker build . --tag ghcr.io/b-neufeld/sheets2projectionlab:latest
-#          docker run ghcr.io/b-neufeld/sheets2projectionlab:latest
-#          docker push ghcr.io/b-neufeld/sheets2projectionlab:latest
-
