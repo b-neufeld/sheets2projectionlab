@@ -33,8 +33,18 @@ time_delay = int(os.getenv("TIME_DELAY",DEFAULT_TIME_DELAY)) # https://stackover
 # define the scope
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
+# Check that key file exists and if not, exit the script. 
+keyfile_path = os.path.join("/keys",google_auth_json_filename)
+try:
+    # Attempt to open the file
+    with open('keyfile_path', 'r') as file:
+        print("The key file exists, continuing...")
+except FileNotFoundError:
+    print("The expected key file JSON was not found, exiting...")
+    exit()
+
 # add credentials to the account
-creds = ServiceAccountCredentials.from_json_keyfile_name(os.path.join("/keys",google_auth_json_filename), scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name(keyfile_path, scope)
 
 # authorize the clientsheet 
 if debug: print("Authorizing Google creds...")

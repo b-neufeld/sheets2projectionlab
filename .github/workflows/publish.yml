@@ -1,5 +1,8 @@
 name: publish
-on: [push]
+# Only trigger Docker image build when new release is published. 
+on:
+  release:
+    types: [published]
 jobs:
   publish-sheets2projectionlab:
     runs-on: ubuntu-latest
