@@ -25,6 +25,14 @@ def get_env_variable(var_name, default=None):
         exit()
     return value
 
+# Validate data pulled from Google Sheets
+def validate_update_commands(commands):
+    for command in commands:
+        if not command.startswith("window.projectionlabPluginAPI.updateAccount"):
+            logging.warning(f"Invalid command detected: {command}")
+            commands.remove(command)
+    return commands
+
 google_auth_json_filename = get_env_variable("GOOGLE_JSON_KEY_FILENAME")
 pl_email = get_env_variable("PL_EMAIL")
 pl_pass = get_env_variable("PL_PASSWORD")
@@ -71,7 +79,7 @@ sheet_instance = sheet.worksheet(sheets_worksheet)
 # Assumes Column 4 and that people are matching my template. 
 logging.debug("Fetching update list from Google Sheets...")
 update_list = sheet_instance.col_values(4)
-update_list = update_list[1:]  # Trim the header row
+update_list = validate_update_commands(update_list[1:])  # Trim the header row and validate
 logging.info(f"Retrieved {len(update_list)} entries from the update list.")
 
 # For debugging: be cautious uncommenting this line for debugging as someone eventually using it may 
