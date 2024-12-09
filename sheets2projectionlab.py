@@ -14,14 +14,12 @@ import time
 import os
 
 # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
-# Type casting of all env vars seems to be required to prevent an error on the cron job.
-# Actually I could probably remove them as it was due to a cron/docker issue. 
-google_auth_json_filename = str(os.getenv("GOOGLE_JSON_KEY_FILENAME"))
-pl_email = str(os.getenv("PL_EMAIL"))
-pl_pass = str(os.getenv("PL_PASSWORD"))
-projectionlab_url = str(os.getenv("PL_URL"))
-sheets_filename = str(os.getenv("SHEETS_FILENAME"))
-sheets_worksheet = str(os.getenv("SHEETS_WORKSHEET"))
+google_auth_json_filename = os.getenv("GOOGLE_JSON_KEY_FILENAME")
+pl_email = os.getenv("PL_EMAIL")
+pl_pass = os.getenv("PL_PASSWORD")
+projectionlab_url = os.getenv("PL_URL")
+sheets_filename = os.getenv("SHEETS_FILENAME")
+sheets_worksheet = os.getenv("SHEETS_WORKSHEET")
 DEFAULT_TIME_DELAY = 10
 time_delay = int(os.getenv("TIME_DELAY",DEFAULT_TIME_DELAY)) # https://stackoverflow.com/a/61697579
 
