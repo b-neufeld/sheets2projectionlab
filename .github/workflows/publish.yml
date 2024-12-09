@@ -1,5 +1,4 @@
 name: publish
-# Only trigger Docker image build when a new release is published.
 on:
   release:
     types: [published]
@@ -12,12 +11,11 @@ jobs:
     permissions:
       contents: read
       packages: write
-      attestations: write
       id-token: write
     steps:
       # Checkout the repository
       - uses: actions/checkout@v2
-      
+
       # Login to GitHub Container Registry
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
@@ -25,8 +23,13 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      # Extract metadata (tags, labels) for Docker
+
+      # Determine if the release is a pre-release
+      - name: Check if pre-release
+        id: prerelease
+        run: echo "IS_PRERELEASE=${{ github.event.release.prerelease }}" >> $GITHUB_ENV
+
+      # Extract metadata for Docker
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -34,8 +37,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=semver,pattern={{version}}
-            latest
-      
+            ${{ 'latest' if env.IS_PRERELEASE != 'true' else '' }}
+
       # Build and push Docker image
       - name: Build and push Docker image
         id: push
@@ -43,14 +46,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      
-      # Generate artifact attestation
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
