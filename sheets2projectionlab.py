@@ -5,26 +5,32 @@ import logging
 import os
 import time
 import gspread
+import re
 from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-# Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
 def get_env_variable(var_name, default=None):
+    # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
     value = os.getenv(var_name, default)
     if not value:
         logging.error(f"Environment variable {var_name} is missing or invalid.")
         exit()
     return value
 
-# Validate data pulled from Google Sheets
 def validate_update_commands(commands):
+    # Validate data pulled from Google Sheets
     for command in commands:
         if not command.startswith("window.projectionlabPluginAPI.updateAccount"):
             logging.warning(f"Invalid command detected: {command}")
             commands.remove(command)
     return commands
+
+def redact_api_key(command):
+    # Use a regular expression to find and replace the `key` field (remove sensitive information from logging)
+    redacted_command = re.sub(r"(key: ')([^']+)(')", r"\1***REDACTED***\3", command)
+    return redacted_command
 
 def main(): 
     # Set up logging configuration
@@ -135,9 +141,10 @@ def main():
 
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
-            logging.debug(f"Executing command: {command}")
+            redacted_command = redact_api_key(command) # hide private info from logging
+            logging.debug(f"Executing command: {redacted_command}")
             driver.execute_script(command)
-            logging.info(f"Successfully executed command, sleeping {time_delay} seconds.")
+            logging.info("Successfully executed command.")
             time.sleep(time_delay)
         
         logging.info("All updates completed successfully.")
