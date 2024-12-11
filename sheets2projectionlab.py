@@ -84,10 +84,20 @@ def main():
     logging.info(f"Waiting {time_delay} seconds to (hopefully) ensure the sheet updates.")
     time.sleep(time_delay)
 
+    logging.info(f"Writing dummy value to cell A1 to attempt to trigger a spreadsheet update")
+
+    # Trigger refresh by updating a dummy cell (per ChatGPT)
+    dummy_cell = "A1" #A1 should be a header cell, OK to overwrite
+    original_value = sheet_instance.acell(dummy_cell).value  # Backup original value
+    sheet_instance.update_acell(dummy_cell, "Refresh Trigger")
+    time.sleep(1)
+    sheet_instance.update_acell(dummy_cell, original_value)  # Restore original value
+    time.sleep(1)
+
     # List of accounts and balances to update
     # Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
     # Assumes Column 4 and that people are matching my template. 
-    logging.debug("Fetching update list from Google Sheets...")
+    logging.debug("Fetching updated balances from Google Sheets...")
     update_list = sheet_instance.col_values(4)
     update_list = validate_update_commands(update_list[1:])  # Trim the header row and validate
     logging.info(f"Retrieved {len(update_list)} entries from the update list.")
