@@ -92,7 +92,8 @@ def main():
     sheet_instance.update_acell(dummy_cell, "Refresh Trigger")
     time.sleep(1)
     sheet_instance.update_acell(dummy_cell, original_value)  # Restore original value
-    time.sleep(1)
+    logging.info(f"Waiting {time_delay} after dummy value write (hopefully) ensure the sheet updates.")
+    time.sleep(time_delay)
 
     # List of accounts and balances to update
     # Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
