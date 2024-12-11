@@ -43,7 +43,7 @@ plAccounts.forEach(account => {
 Copy the information returned by the console to extract your ProjectionLab account IDs. 
 
 ## Prepare your Google spreadsheet
-1. Share your Google spreadsheet (that you want to sync to PL) with the Google service account you just created. 
+1. Share your Google spreadsheet (that you want to sync to PL) with the Google service account you just created. **Important**: Share with Editor permissions. The script writes a temporary value to the Sheet (then reverts the change) which triggers a refresh of the Sheet. Otherwise, stale data could be queried. 
 2. Create a new, dedicated tab to sync to ProjectionLab. 
 3. Create the following four columns. Column headers are required as the script truncates the first row:
 
