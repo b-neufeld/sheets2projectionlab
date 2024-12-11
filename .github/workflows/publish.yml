@@ -50,6 +50,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      # A short time delay to ensure the image can be pulled after pushed 
+      - name: Wait for image availability 
+        run: sleep 20
+
       # Pull the image again so it's available locally
       - name: Pull Docker image
         run: |

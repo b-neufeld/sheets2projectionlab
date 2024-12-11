@@ -43,7 +43,7 @@ plAccounts.forEach(account => {
 Copy the information returned by the console to extract your ProjectionLab account IDs. 
 
 ## Prepare your Google spreadsheet
-1. Share your Google spreadsheet (that you want to sync to PL) with the Google service account you just created. 
+1. Share your Google spreadsheet (that you want to sync to PL) with the Google service account you just created. **Important**: Share with Editor permissions. The script writes a temporary value to the Sheet (then reverts the change) which triggers a refresh of the Sheet. Otherwise, stale data could be queried. 
 2. Create a new, dedicated tab to sync to ProjectionLab. 
 3. Create the following four columns. Column headers are required as the script truncates the first row:
 
@@ -80,6 +80,7 @@ services:
       - PL_URL=http://172.16.1.98:8099/register
       - SHEETS_FILENAME=My Financial Plan
       - SHEETS_WORKSHEET=PLsync
+      - TZ=America/Regina
       - TIME_DELAY=10
     restart: unless-stopped
 ```
@@ -87,6 +88,7 @@ Notes:
 - The ProjectionLab URL must point to the /register login page, as the Selenium script is looking for specific buttons to click to log in. 
 - `SHEETS_FILENAME` and `SHEETS_WORKSHEET` should be self-explanatory. Spaces are OK here, e.g. `SHEETS_FILENAME=Financial Plan`
 - `TIME_DELAY` is the number of seconds between opening the PL_URL and attempting to enter the username/password. This should not be too small (10 seconds is default) or the script will try and log in or publish values before the content renders in the browser.
+- Time zone `TZ` is required to ensure the Docker container is running in the same time zone as your ProjectionLab instance. 
 - If you use Docker Run instead of Docker Compose, see https://www.decomposerize.com/ or a similar site.
 
 ## How do I know it's working? 

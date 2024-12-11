@@ -35,7 +35,7 @@ def redact_api_key(command):
 def main(): 
     # Set up logging configuration
     logging.basicConfig(
-        level=logging.DEBUG,  # Set level to DEBUG for verbose output
+        level=logging.INFO,  # Set level to INFO for verbose output (DEBUG could expose PL creds in logs)
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
@@ -71,20 +71,34 @@ def main():
     creds = ServiceAccountCredentials.from_json_keyfile_name(keyfile_path, scope)
 
     # authorize the clientsheet 
-    logging.debug("Authorizing Google credentials...")
+    logging.info("Authorizing Google credentials...")
     client = gspread.authorize(creds)
 
     # get the instance of the Spreadsheet
-    logging.debug("Opening Google Sheets spreadsheet...")
+    logging.info("Opening Google Sheets spreadsheet...")
     sheet = client.open(sheets_filename)
 
-    logging.debug("Accessing specified worksheet...")
+    logging.info("Accessing specified worksheet...")
     sheet_instance = sheet.worksheet(sheets_worksheet)
+
+    logging.info(f"Waiting {time_delay} seconds to (hopefully) ensure the sheet updates.")
+    time.sleep(time_delay)
+
+    logging.info(f"Writing dummy value to cell A1 to attempt to trigger a spreadsheet update")
+
+    # Trigger refresh of functions like =GOOGLEFINANCE() by updating a dummy cell (per ChatGPT)
+    dummy_cell = "A1" #A1 should be a header cell, OK to overwrite
+    original_value = sheet_instance.acell(dummy_cell).value  # Backup original value
+    sheet_instance.update_acell(dummy_cell, "Refresh Trigger")
+    time.sleep(1)
+    sheet_instance.update_acell(dummy_cell, original_value)  # Restore original value
+    logging.info(f"Waiting {time_delay} after dummy value write (hopefully) ensure the sheet updates.")
+    time.sleep(time_delay)
 
     # List of accounts and balances to update
     # Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
     # Assumes Column 4 and that people are matching my template. 
-    logging.debug("Fetching update list from Google Sheets...")
+    logging.info("Fetching updated balances from Google Sheets...")
     update_list = sheet_instance.col_values(4)
     update_list = validate_update_commands(update_list[1:])  # Trim the header row and validate
     logging.info(f"Retrieved {len(update_list)} entries from the update list.")
@@ -109,32 +123,32 @@ def main():
     chrome_options.add_argument('--disable-gpu')
 
     try:
-        logging.debug("Starting Chrome WebDriver...")
+        logging.info("Starting Chrome WebDriver...")
         driver = webdriver.Chrome(options=chrome_options)
 
-        logging.debug(f"Navigating to ProjectionLab URL: {projectionlab_url}")
+        logging.info(f"Navigating to ProjectionLab URL: {projectionlab_url}")
         driver.get(projectionlab_url)
 
         logging.info(f"Waiting {time_delay} seconds for the page to load.")
         time.sleep(time_delay)
 
-        logging.debug("Clicking Sign In with Email button...")
+        logging.info("Clicking Sign In with Email button...")
         driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]').click()
         time.sleep(1)
 
-        logging.debug("Entering email address...")
+        logging.info("Entering email address...")
         email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
         email_input.clear()
         email_input.send_keys(pl_email)
         time.sleep(1)
 
-        logging.debug("Entering password...")
+        logging.info("Entering password...")
         password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
         password_input.clear()
         password_input.send_keys(pl_pass)
         time.sleep(1)
 
-        logging.debug("Clicking Sign In button...")
+        logging.info("Clicking Sign In button...")
         driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button').click()
         logging.info(f"Waiting {time_delay} seconds for login to complete.")
         time.sleep(time_delay)
@@ -142,7 +156,7 @@ def main():
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
             redacted_command = redact_api_key(command) # hide private info from logging
-            logging.debug(f"Executing command: {redacted_command}")
+            logging.info(f"Executing command: {redacted_command}")
             driver.execute_script(command)
             logging.info("Successfully executed command. Sleeping 1 sec")
             time.sleep(1)
