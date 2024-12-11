@@ -81,6 +81,9 @@ def main():
     logging.debug("Accessing specified worksheet...")
     sheet_instance = sheet.worksheet(sheets_worksheet)
 
+    logging.info(f"Waiting {time_delay} seconds to (hopefully) ensure the sheet updates.")
+    time.sleep(time_delay)
+
     # List of accounts and balances to update
     # Should be a list of values matching this string:window.projectionlabPluginAPI.updateAccount('xxxxxxxxx-accountid', { balance: 33019.78 }, { key: 'xxxxxxxxxxx-apikey' })
     # Assumes Column 4 and that people are matching my template. 
