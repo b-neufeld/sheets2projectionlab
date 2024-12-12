@@ -10,6 +10,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def get_env_variable(var_name, default=None):
     # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
@@ -164,8 +166,12 @@ def main():
         logging.info("Clicking Sign In button...")
         button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
         driver.execute_script("arguments[0].click();", button) #https://stackoverflow.com/a/58378714
-        logging.info(f"Waiting {time_delay} seconds for login to complete.")
-        time.sleep(time_delay)
+        logging.info(f"Selenium WebDriver Wait function until login is complete and page loads...")
+        #time.sleep(time_delay)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
+
+        api_status = driver.execute_script("return typeof window.projectionlabPluginAPI;")
+        logging.info(f"API Status: {api_status}")
 
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
