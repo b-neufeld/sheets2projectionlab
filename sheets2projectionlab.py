@@ -170,8 +170,19 @@ def main():
         #time.sleep(time_delay)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
 
+        # check Javascript
+        js_enabled = driver.execute_script("return !!window.navigator;")
+        print(f"JavaScript Enabled: {js_enabled}")
+
+        # Wait for projectionlabPluginAPI to be available
+        logging.info(f"Waiting until ProjectionLab API becomes available...")
+        WebDriverWait(driver, 20).until(
+            lambda d: d.execute_script("return typeof window.projectionlabPluginAPI !== 'undefined';")
+        )
+
         api_status = driver.execute_script("return typeof window.projectionlabPluginAPI;")
         logging.info(f"API Status: {api_status}")
+
 
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
