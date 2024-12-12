@@ -35,7 +35,7 @@ def redact_api_key(command):
 def main(): 
     # Set up logging configuration
     logging.basicConfig(
-        level=logging.INFO,  # Set level to INFO for verbose output (DEBUG could expose PL creds in logs)
+        level=logging.DEBUG,  # Set level to INFO for verbose output (DEBUG could expose PL creds in logs)
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
