@@ -1,5 +1,7 @@
 # BNeufeld
-
+# Testing stuff to undo: 
+# - Change cron job back from 2m to 5m
+# - Change logging level back from DEBUG to INFO
 #importing required libraries
 import logging
 import os
@@ -83,7 +85,7 @@ def main():
     logging.info("Accessing specified worksheet...")
     sheet_instance = sheet.worksheet(sheets_worksheet)
 
-    logging.info(f"Waiting {time_delay} seconds to (hopefully) ensure the sheet updates.")
+    logging.info(f"Waiting {time_delay} seconds...")
     time.sleep(time_delay)
 
     logging.info(f"Writing dummy value to cell A1 to attempt to trigger a spreadsheet update")
@@ -94,7 +96,7 @@ def main():
     sheet_instance.update_acell(dummy_cell, "Refresh Trigger")
     time.sleep(1)
     sheet_instance.update_acell(dummy_cell, original_value)  # Restore original value
-    logging.info(f"Waiting {time_delay} after dummy value write (hopefully) ensure the sheet updates.")
+    logging.info(f"Waiting {time_delay} seconds after dummy value write to ensure the sheet updates.")
     time.sleep(time_delay)
 
     # List of accounts and balances to update

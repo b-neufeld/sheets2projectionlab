@@ -33,7 +33,7 @@ RUN apt-get -y --fix-broken install cron
 RUN pip install --break-system-packages --upgrade -r requirements.txt
 
 # This is currently writing to /etc/crontab successfully but does not seem to be running. 
-RUN echo "*/5 * * * * python3 /sheets2projectionlab.py > /proc/1/fd/1 2>/proc/1/fd/2" >> /etc/crontab
+RUN echo "*/2 * * * * python3 /sheets2projectionlab.py > /proc/1/fd/1 2>/proc/1/fd/2" >> /etc/crontab
 
 # start cron in foreground (don't fork)
 # From here: https://stackoverflow.com/a/61631500
