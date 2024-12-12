@@ -7,7 +7,8 @@ This Docker container contains a cron job that calls a Python script that runs e
 The script authenticates with Google Drive, grabs values from your Sheet, spins up an instance of Selenium web browser, mimics the clicks to log into ProjectionLab with your credentials, and posts updated balances to the Selenium browser console via the ProjectionLab API. 
 
 # Limitations: 
-- Only tested on a self-hosted ProjectionLab install with email/password login. **If you test this container with an account on Projectionlab.com please drop me a note!**
+- Only tested on a self-hosted ProjectionLab install with email/password login.
+  - **Currently not working on ProjectionLab.com. I am tinkering with how to resolve this,**
 - Doesn't handle Google authentication for login. If you sign in this way, go into your account settings and enable an email/password combination as well.
 - If you have more than 200 accounts in ProjectionLab for some reason, there's a risk that the script will take longer to execute than the 5-minute cron job that triggers it (based on about 60 seconds of "prep" and 1 second per account update). Workarounds: Run 2 containers with <200 accounts each, or build your own image and change the duration of the cron job in the Dockerfile. 
 
@@ -58,6 +59,8 @@ Copy the information returned by the console to extract your ProjectionLab accou
 Screenshot of example Google Sheet (with random balances and blanked-out ProjectionLab API key):
 ![image](https://github.com/user-attachments/assets/92e0259d-2b18-4504-91f9-f97da66d83a2)
 
+#### If you have a ProjectionLab.com account and the Docker container doesn't work...
+You COULD simply copy and paste the contents of Column D into your browser's development terminal for much-faster-than-manual updates. 
 
 ## Setting up the Docker Image 
 Docker Compose Template:
