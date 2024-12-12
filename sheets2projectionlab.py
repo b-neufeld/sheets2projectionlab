@@ -172,6 +172,11 @@ def main():
         #time.sleep(time_delay)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
 
+        # debugging: print cookies
+        cookies = driver.get_cookies()
+        for cookie in cookies:
+            print(cookie)
+
         # check Javascript
         js_enabled = driver.execute_script("return !!window.navigator;")
         print(f"JavaScript Enabled: {js_enabled}")
