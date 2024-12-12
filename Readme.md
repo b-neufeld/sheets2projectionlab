@@ -8,7 +8,7 @@ The script authenticates with Google Drive, grabs values from your Sheet, spins 
 
 # Limitations: 
 - Only tested on a self-hosted ProjectionLab install with email/password login.
-  - **Currently not working on ProjectionLab.com. I am tinkering with how to resolve this,**
+  - **Currently not working on ProjectionLab.com. I am tinkering with how to resolve this, see https://github.com/b-neufeld/sheets2projectionlab/issues/13**
 - Doesn't handle Google authentication for login. If you sign in this way, go into your account settings and enable an email/password combination as well.
 - If you have more than 200 accounts in ProjectionLab for some reason, there's a risk that the script will take longer to execute than the 5-minute cron job that triggers it (based on about 60 seconds of "prep" and 1 second per account update). Workarounds: Run 2 containers with <200 accounts each, or build your own image and change the duration of the cron job in the Dockerfile. 
 
