@@ -133,7 +133,8 @@ def main():
         time.sleep(time_delay)
 
         logging.info("Clicking Sign In with Email button...")
-        driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]').click()
+        button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]')
+        driver.execute_script("arguments[0].click();", button) #https://stackoverflow.com/a/58378714
         time.sleep(1)
 
         logging.info("Entering email address...")
@@ -149,7 +150,8 @@ def main():
         time.sleep(1)
 
         logging.info("Clicking Sign In button...")
-        driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button').click()
+        button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
+        driver.execute_script("arguments[0].click();", button) #https://stackoverflow.com/a/58378714
         logging.info(f"Waiting {time_delay} seconds for login to complete.")
         time.sleep(time_delay)
 
