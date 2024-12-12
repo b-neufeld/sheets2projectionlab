@@ -179,7 +179,7 @@ def main():
 
         # check Javascript
         js_enabled = driver.execute_script("return !!window.navigator;")
-        print(f"JavaScript Enabled: {js_enabled}")
+        logging.info(f"JavaScript Enabled: {js_enabled}")
 
         # Wait for projectionlabPluginAPI to be available
         logging.info(f"Waiting until ProjectionLab API becomes available...")
