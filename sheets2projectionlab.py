@@ -165,9 +165,9 @@ def main():
         password_input.send_keys(pl_pass)
         time.sleep(1)
 
-        logging.info("Clicking Sign In button...")
-        button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
-        driver.execute_script("arguments[0].click();", button) #https://stackoverflow.com/a/58378714
+        logging.info("Clicking Sign button...")
+        button2 = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
+        driver.execute_script("arguments[0].click();", button2) #https://stackoverflow.com/a/58378714
         logging.info(f"Selenium WebDriver Wait function until login is complete and page loads...")
         #time.sleep(time_delay)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
