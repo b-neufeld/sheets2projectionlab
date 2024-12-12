@@ -138,13 +138,25 @@ def main():
         time.sleep(1)
 
         logging.info("Entering email address...")
-        email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
+        try:
+            email_input = driver.find_element(By.XPATH, '//*[@id="input-7"]')  # input-7 on projectionlab.com
+        except:
+            try:
+                email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')  # input-6 on self-hosted
+            except:
+                logging.info("Error finding email input...")
         email_input.clear()
         email_input.send_keys(pl_email)
         time.sleep(1)
 
         logging.info("Entering password...")
-        password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
+        try:
+            password_input = driver.find_element(By.XPATH, '//*[@id="input-9"]') # input-9 on projectionlab.com
+        except: 
+            try:
+                password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]') # input-8 on self-hosted
+            except:
+                 logging.info("Error finding password input...")   
         password_input.clear()
         password_input.send_keys(pl_pass)
         time.sleep(1)
