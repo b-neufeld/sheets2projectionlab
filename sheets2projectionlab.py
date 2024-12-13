@@ -10,6 +10,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def get_env_variable(var_name, default=None):
     # Get Environment Variables (reference: https://www.tutorialspoint.com/how-to-pass-command-line-arguments-to-a-python-docker-container)
@@ -81,7 +83,7 @@ def main():
     logging.info("Accessing specified worksheet...")
     sheet_instance = sheet.worksheet(sheets_worksheet)
 
-    logging.info(f"Waiting {time_delay} seconds to (hopefully) ensure the sheet updates.")
+    logging.info(f"Waiting {time_delay} seconds...")
     time.sleep(time_delay)
 
     logging.info(f"Writing dummy value to cell A1 to attempt to trigger a spreadsheet update")
@@ -92,7 +94,7 @@ def main():
     sheet_instance.update_acell(dummy_cell, "Refresh Trigger")
     time.sleep(1)
     sheet_instance.update_acell(dummy_cell, original_value)  # Restore original value
-    logging.info(f"Waiting {time_delay} after dummy value write (hopefully) ensure the sheet updates.")
+    logging.info(f"Waiting {time_delay} seconds after dummy value write to ensure the sheet updates.")
     time.sleep(time_delay)
 
     # List of accounts and balances to update
@@ -133,25 +135,58 @@ def main():
         time.sleep(time_delay)
 
         logging.info("Clicking Sign In with Email button...")
-        driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]').click()
+        sign_in_with_email_button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]')
+        driver.execute_script("arguments[0].click();", sign_in_with_email_button) #https://stackoverflow.com/a/58378714
         time.sleep(1)
 
         logging.info("Entering email address...")
-        email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')
+        try:
+            email_input = driver.find_element(By.XPATH, '//*[@id="input-7"]')  # input-7 on projectionlab.com
+        except:
+            try:
+                email_input = driver.find_element(By.XPATH, '//*[@id="input-6"]')  # input-6 on self-hosted
+            except:
+                logging.info("Error finding email input...")
         email_input.clear()
         email_input.send_keys(pl_email)
         time.sleep(1)
 
         logging.info("Entering password...")
-        password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]')
+        try:
+            password_input = driver.find_element(By.XPATH, '//*[@id="input-9"]') # input-9 on projectionlab.com
+        except: 
+            try:
+                password_input = driver.find_element(By.XPATH, '//*[@id="input-8"]') # input-8 on self-hosted
+            except:
+                 logging.info("Error finding password input...")   
         password_input.clear()
         password_input.send_keys(pl_pass)
         time.sleep(1)
 
-        logging.info("Clicking Sign In button...")
-        driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button').click()
-        logging.info(f"Waiting {time_delay} seconds for login to complete.")
-        time.sleep(time_delay)
+        logging.info("Clicking Sign button...")
+        sign_in_button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
+        driver.execute_script("arguments[0].click();", sign_in_button) #https://stackoverflow.com/a/58378714
+        logging.info(f"Selenium WebDriver Wait function until login is complete and page loads...")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
+
+        # For debugging: print cookies
+        # cookies = driver.get_cookies()
+        # for cookie in cookies:
+        #    print(cookie)
+
+        # For debugging: check Javascript
+        # js_enabled = driver.execute_script("return !!window.navigator;")
+        # logging.info(f"JavaScript Enabled: {js_enabled}")
+
+        # Wait for projectionlabPluginAPI to be available
+        logging.info(f"Waiting until ProjectionLab API becomes available...")
+        WebDriverWait(driver, 20).until(
+            lambda d: d.execute_script("return typeof window.projectionlabPluginAPI !== 'undefined';")
+        )
+
+        # For debugging
+        # api_status = driver.execute_script("return typeof window.projectionlabPluginAPI;")
+        # logging.info(f"API Status: {api_status}")
 
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
@@ -161,11 +196,12 @@ def main():
             logging.info("Successfully executed command. Sleeping 1 sec")
             time.sleep(1)
 
-        
-        logging.info("All updates completed successfully.")
+        logging.info(f"All updates completed successfully. Waiting {time_delay} seconds before quit...")
+        time.sleep(time_delay)
 
     finally:
         logging.info("Closing WebDriver.")
+        
         driver.quit()
 
 if __name__ == "__main__":
