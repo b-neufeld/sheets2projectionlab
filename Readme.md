@@ -6,11 +6,12 @@ This Docker container contains a cron job that calls a Python script that runs e
 
 The script authenticates with Google Drive, grabs values from your Sheet, spins up an instance of Selenium web browser, mimics the clicks to log into ProjectionLab with your credentials, and posts updated balances to the Selenium browser console via the ProjectionLab API. 
 
+The script has been tested on both self-hosted instances of ProjectionLab as well as projectionlab.com. 
+
 # Limitations: 
-- Only tested on a self-hosted ProjectionLab install with email/password login.
-  - **Currently not working on ProjectionLab.com. I am tinkering with how to resolve this, see https://github.com/b-neufeld/sheets2projectionlab/issues/13**
 - Doesn't handle Google authentication for login. If you sign in this way, go into your account settings and enable an email/password combination as well.
-- If you have more than 200 accounts in ProjectionLab for some reason, there's a risk that the script will take longer to execute than the 5-minute cron job that triggers it (based on about 60 seconds of "prep" and 1 second per account update). Workarounds: Run 2 containers with <200 accounts each, or build your own image and change the duration of the cron job in the Dockerfile. 
+- If you have more than 200 accounts in ProjectionLab for some reason, there's a risk that the script will take longer to execute than the 5-minute cron job that triggers it (based on about 60 seconds of "prep" and 1 second per account update). Workarounds: Run 2 containers with <200 accounts each, or build your own image and change the duration of the cron job in the Dockerfile.
+- If actively working on scenarios, the 5-minute balance update may be too fast, and may trigger refreshes on the scenarios pages. If this occurs, stop/pause the container, or I can dial back the balance update interval. 
 
 ## Disclaimer 
 I am not a professional programmer. I'm a cobbler-together-of-Stackoverflow answers. Certainly there are more elegant solutions possible - but this is working for me, and I wanted to share! I may be time constrained in how far this develops, however, I do like learning and hacking away on things, so constructive feedback is welcome. 
@@ -59,7 +60,7 @@ Copy the information returned by the console to extract your ProjectionLab accou
 Screenshot of example Google Sheet (with random balances and blanked-out ProjectionLab API key):
 ![image](https://github.com/user-attachments/assets/92e0259d-2b18-4504-91f9-f97da66d83a2)
 
-#### If you have a ProjectionLab.com account and the Docker container doesn't work...
+#### Tip: If you have a ProjectionLab.com account and are struggling with the Docker and/or Google API stuff...
 You COULD simply copy and paste the contents of Column D into your browser's development terminal for much-faster-than-manual updates. 
 
 ## Setting up the Docker Image 
@@ -89,7 +90,7 @@ services:
     restart: unless-stopped
 ```
 Notes:
-- The ProjectionLab URL must point to the /register login page, as the Selenium script is looking for specific buttons to click to log in. 
+- The ProjectionLab URL must point to the /register login page (on self-hosted) or the /login URL for projectionlab.com, as the Selenium script is looking for specific buttons to click to log in. 
 - `SHEETS_FILENAME` and `SHEETS_WORKSHEET` should be self-explanatory. Spaces are OK here, e.g. `SHEETS_FILENAME=Financial Plan`
 - `TIME_DELAY` is the number of seconds between opening the PL_URL and attempting to enter the username/password. This should not be too small (10 seconds is default) or the script will try and log in or publish values before the content renders in the browser.
 - Time zone `TZ` is required to ensure the Docker container is running in the same time zone as your ProjectionLab instance. 
@@ -97,5 +98,5 @@ Notes:
 
 ## How do I know it's working? 
 Every 5 minutes, the log output of the container will show the steps the script has taken:
-![image](https://github.com/user-attachments/assets/2fac639f-e465-41b3-bc32-028f300a4d47)
-I've observed the script fail somewhat randomly and I believe this has to do with spinning up a Selenium browser and for some reason, it is slow to load my self-hosted ProjectionLab instance, and the script times out.  
+![image](https://github.com/user-attachments/assets/17e8b584-1e02-4978-bc4e-28778123430b)
+
