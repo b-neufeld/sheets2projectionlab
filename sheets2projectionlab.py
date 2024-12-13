@@ -1,7 +1,5 @@
 # BNeufeld
-# Testing stuff to undo: 
-# - Change cron job back from 2m to 5m
-# - Change logging level back from DEBUG to INFO
+
 #importing required libraries
 import logging
 import os
@@ -39,7 +37,7 @@ def redact_api_key(command):
 def main(): 
     # Set up logging configuration
     logging.basicConfig(
-        level=logging.DEBUG,  # Set level to INFO for verbose output (DEBUG could expose PL creds in logs)
+        level=logging.INFO,  # Set level to INFO for verbose output (DEBUG could expose PL creds in logs)
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
@@ -137,8 +135,8 @@ def main():
         time.sleep(time_delay)
 
         logging.info("Clicking Sign In with Email button...")
-        button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]')
-        driver.execute_script("arguments[0].click();", button) #https://stackoverflow.com/a/58378714
+        sign_in_with_email_button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/button[2]')
+        driver.execute_script("arguments[0].click();", sign_in_with_email_button) #https://stackoverflow.com/a/58378714
         time.sleep(1)
 
         logging.info("Entering email address...")
@@ -166,20 +164,19 @@ def main():
         time.sleep(1)
 
         logging.info("Clicking Sign button...")
-        button2 = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
-        driver.execute_script("arguments[0].click();", button2) #https://stackoverflow.com/a/58378714
+        sign_in_button = driver.find_element(By.XPATH, '//*[@id="auth-container"]/form/button')
+        driver.execute_script("arguments[0].click();", sign_in_button) #https://stackoverflow.com/a/58378714
         logging.info(f"Selenium WebDriver Wait function until login is complete and page loads...")
-        #time.sleep(time_delay)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body"))) # will this fix script execution?
 
-        # debugging: print cookies
-        cookies = driver.get_cookies()
-        for cookie in cookies:
-            print(cookie)
+        # For debugging: print cookies
+        # cookies = driver.get_cookies()
+        # for cookie in cookies:
+        #    print(cookie)
 
-        # check Javascript
-        js_enabled = driver.execute_script("return !!window.navigator;")
-        logging.info(f"JavaScript Enabled: {js_enabled}")
+        # For debugging: check Javascript
+        # js_enabled = driver.execute_script("return !!window.navigator;")
+        # logging.info(f"JavaScript Enabled: {js_enabled}")
 
         # Wait for projectionlabPluginAPI to be available
         logging.info(f"Waiting until ProjectionLab API becomes available...")
@@ -187,9 +184,9 @@ def main():
             lambda d: d.execute_script("return typeof window.projectionlabPluginAPI !== 'undefined';")
         )
 
-        api_status = driver.execute_script("return typeof window.projectionlabPluginAPI;")
-        logging.info(f"API Status: {api_status}")
-
+        # For debugging
+        # api_status = driver.execute_script("return typeof window.projectionlabPluginAPI;")
+        # logging.info(f"API Status: {api_status}")
 
         logging.info("Updating accounts in ProjectionLab...")
         for command in update_list:
@@ -199,7 +196,6 @@ def main():
             logging.info("Successfully executed command. Sleeping 1 sec")
             time.sleep(1)
 
-        
         logging.info(f"All updates completed successfully. Waiting {time_delay} seconds before quit...")
         time.sleep(time_delay)
 
