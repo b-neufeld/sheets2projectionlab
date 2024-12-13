@@ -200,10 +200,12 @@ def main():
             time.sleep(1)
 
         
-        logging.info("All updates completed successfully.")
+        logging.info("All updates completed successfully. Waiting {time_delay} seconds before quit...")
+        time.sleep(time_delay)
 
     finally:
         logging.info("Closing WebDriver.")
+        
         driver.quit()
 
 if __name__ == "__main__":
