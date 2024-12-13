@@ -200,7 +200,7 @@ def main():
             time.sleep(1)
 
         
-        logging.info("All updates completed successfully. Waiting {time_delay} seconds before quit...")
+        logging.info(f"All updates completed successfully. Waiting {time_delay} seconds before quit...")
         time.sleep(time_delay)
 
     finally:
