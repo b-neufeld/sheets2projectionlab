@@ -81,7 +81,7 @@ services:
       - GOOGLE_JSON_KEY_FILENAME=googlejsonkeyfilename.json
       - PL_EMAIL=your_email@domain
       - PL_PASSWORD=your_pl_password
-      # Should be https://app.projectionlab.com/login for non-self-hosted (not tested)
+      # Should be https://app.projectionlab.com/login if not self-hosted 
       - PL_URL=http://172.16.1.98:8099/register
       - SHEETS_FILENAME=My Financial Plan
       - SHEETS_WORKSHEET=PLsync
