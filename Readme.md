@@ -1,8 +1,8 @@
 
 # Overview 
-This Docker container contains a cron job that calls a Python script that runs every five minutes*. The script grabs a bunch of data from your Google Sheet and dumps it into ProjectionLab. 
+This Docker container contains a cron job that calls a Python script that runs every 30 minutes*. The script grabs a bunch of data from your Google Sheet and dumps it into ProjectionLab. 
 
-\*Five minutes is high-frequency for planning software with daily balance logs and yearly simulation horizons, but why not? I picked this frequency because it visibly demonstrates the script is working - no need to wait 24 hours to see. And if you're like me, you're always running PL scenarios based on your finances *right now*.
+\*30 minutes is high-frequency for planning software with daily balance logs and yearly simulation horizons, but why not? I picked this frequency because it visibly demonstrates the script is working - no need to wait 24 hours to see. And if you're like me, you're always running PL scenarios based on your finances *right now*.
 
 The script authenticates with Google Drive, grabs values from your Sheet, spins up an instance of Selenium web browser, mimics the clicks to log into ProjectionLab with your credentials, and posts updated balances to the Selenium browser console via the ProjectionLab API. 
 
